@@ -1,0 +1,34 @@
+name: Deploy to Raspberry Pi
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Pull latest code
+        working-directory: /opt/SLproject
+        run: |
+          cp -f requirements.txt /tmp/req_sl_before.txt 2>/dev/null || true
+          git pull --ff-only origin main
+
+      - name: Install dependencies (only if requirements changed)
+        working-directory: /opt/SLproject
+        run: |
+          if ! cmp -s requirements.txt /tmp/req_sl_before.txt; then
+            source venv/bin/activate
+            pip install -r requirements.txt
+          fi
+
+      - name: Django migrate and collectstatic
+        working-directory: /opt/SLproject
+        run: |
+          source venv/bin/activate
+          python manage.py migrate --noinput
+          python manage.py collectstatic --noinput
+
+      - name: Reload Gunicorn
+        run: sudo systemctl reload slproject

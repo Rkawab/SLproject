@@ -1,0 +1,4 @@
+{% extends 'base.html' %}
+{% block title %}品目の統合 | 買い物リスト{% endblock %}
+{% block content %}<a href="{% url 'shopping:item-edit' item.pk %}" class="back-link">← 品目に戻る</a><h1>「{{ item.name }}」を統合</h1><p>リスト・履歴・使用回数を移し、この名前を統合先の別名として残します。</p><form method="get" class="manual-form"><label for="merge-search" class="visually-hidden">統合先を検索</label><input id="merge-search" name="q" value="{{ query }}" placeholder="統合先の品名"><button class="btn btn-outline-primary">検索</button></form>
+<form method="post" data-confirm="選んだ品目に統合します。元の品目名は統合先の別名になります。実行しますか？">{% csrf_token %}<label for="merge-target">統合先</label><select id="merge-target" name="target" required><option value="">選んでください</option>{% for target in targets %}<option value="{{ target.pk }}" {% if target.pk == selected.pk %}selected{% endif %}>{{ target.name }}</option>{% endfor %}</select><button class="btn btn-primary w-100 mt-3">確認して統合</button></form>{% endblock %}

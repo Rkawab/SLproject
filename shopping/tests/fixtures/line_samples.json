@@ -1,0 +1,632 @@
+[
+  {
+    "text": "★業務スーパー\nバナナ\nブロッコリー\nエノキ\n椎茸\nじゃがいも\nうどん2玉\n豆腐2パック\n納豆2パック\n牛乳（スッキリカルシウム鉄）\n牛乳\n\n\n★イトーヨーカドーなど\n豚肉しゃぶしゃぶ用500g（鍋用250+シチュー用250g）\n卵\nサラダチキン（3つセットで、糖質オフのやつ）\n鍋つゆ（〆鍋ごま豆乳）\nシラス（2パックになってるやつ）\n味付きめかぶ（3パックになってるやつ）\nヨーグルト（4つセットのやつを1つ）\nビヒダスの飲むヨーグルト5本（1日分の鉄分）",
+    "expected": [
+      {
+        "kind": "heading",
+        "store": "業務スーパー",
+        "name": "",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "バナナ",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "ブロッコリー",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "エノキ",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "椎茸",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "じゃがいも",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "うどん",
+        "quantity": "2玉",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "豆腐",
+        "quantity": "2パック",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "納豆",
+        "quantity": "2パック",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "牛乳（スッキリカルシウム鉄）",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "牛乳",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "heading",
+        "store": "イトーヨーカドー",
+        "name": "",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "豚肉しゃぶしゃぶ用",
+        "quantity": "500g",
+        "note": "鍋用250+シチュー用250g",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "卵",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "サラダチキン",
+        "quantity": "",
+        "note": "3つセットで、糖質オフのやつ",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "鍋つゆ",
+        "quantity": "",
+        "note": "〆鍋ごま豆乳",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "シラス",
+        "quantity": "",
+        "note": "2パックになってるやつ",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "味付きめかぶ",
+        "quantity": "",
+        "note": "3パックになってるやつ",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "ヨーグルト",
+        "quantity": "",
+        "note": "4つセットのやつを1つ",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "ビヒダス飲むヨーグルト 1日分の鉄分",
+        "quantity": "5本",
+        "note": "1日分の鉄分",
+        "match": "exact"
+      }
+    ]
+  },
+  {
+    "text": "帰りに以下を買ってきてもらってもいいかな？\n\n全粒粉食パン6枚切り\nプラス糀 生みそ 糀美人\nヨーグルト\n牛乳\nバナナ",
+    "expected": [
+      {
+        "kind": "heading",
+        "store": null,
+        "name": "",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "全粒粉食パン6枚切り",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "プラス糀 生みそ 糀美人",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "ヨーグルト",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "牛乳",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "バナナ",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      }
+    ]
+  },
+  {
+    "text": "- [ ] 産後ブラ長袖:5枚\n- [ ] マタニティ腹巻きパンツ:2枚\n- [ ] 乳頭ケアクリーム（ピュアレーン）\n- [ ] おしり拭き\n- [ ] 赤ちゃん用保湿剤（クリームまたはローション、ナッツ系不可）\n- [ ] 赤ちゃん短肌着:5枚\n- [ ] 赤ちゃん靴下:2足\n- [ ] 哺乳瓶:2本\n- [ ] 哺乳瓶用乳首（替え）\n- [ ] ベビー敷布団（固すぎず柔らかすぎず）\n- [ ] チャイルドシート",
+    "expected": [
+      {
+        "kind": "item",
+        "store": null,
+        "name": "産後ブラ長袖",
+        "quantity": "5枚",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "マタニティ腹巻きパンツ",
+        "quantity": "2枚",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "乳頭ケアクリーム（ピュアレーン）",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "おしり拭き",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "赤ちゃん用保湿剤",
+        "quantity": "",
+        "note": "クリームまたはローション、ナッツ系不可",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "短肌着",
+        "quantity": "5枚",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "ベビー靴下",
+        "quantity": "2足",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "哺乳瓶",
+        "quantity": "2本",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "哺乳瓶用乳首（替え）",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "ベビー敷布団",
+        "quantity": "",
+        "note": "固すぎず柔らかすぎず",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "チャイルドシート",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      }
+    ]
+  },
+  {
+    "text": "業務スーパー↓\n\nバナナ\nみかん\n小松菜 \n豆腐\n納豆2パック\n普通の牛乳\n牛乳スッキリCa鉄",
+    "expected": [
+      {
+        "kind": "heading",
+        "store": "業務スーパー",
+        "name": "",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "バナナ",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "みかん",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "小松菜",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "豆腐",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "納豆",
+        "quantity": "2パック",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "牛乳",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "業務スーパー",
+        "name": "牛乳（スッキリカルシウム鉄）",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      }
+    ]
+  },
+  {
+    "text": "もし今日スーパー行くなら、以下をお願いします(ごめんなさい)明日でも大丈夫！\n\n長ネギ\n卵\n豚肉しゃぶしゃぶ用300g\n牛肉300g\n鍋用ラーメン\n鍋つゆ（〆鍋とんこつしょうゆ）\n骨取り塩サバ\n何か魚の干物\nツナ缶\nヨーグルト（4つセットのやつを2つ）\nイトーヨーカドーで以下を買ってきてもらえますか(ごめんなさい)\n\nビヒダスの飲むヨーグルト1日分の鉄分4本\n冷凍オクラ\n叙々苑ドレッシング\n納豆\nカットサラダ",
+    "expected": [
+      {
+        "kind": "heading",
+        "store": null,
+        "name": "",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "長ネギ",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "卵",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "豚肉しゃぶしゃぶ用",
+        "quantity": "300g",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "牛肉",
+        "quantity": "300g",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "鍋用ラーメン",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "鍋つゆ",
+        "quantity": "",
+        "note": "〆鍋とんこつしょうゆ",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "骨取り塩サバ",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "魚の干物",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "ツナ缶",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "ヨーグルト",
+        "quantity": "",
+        "note": "4つセットのやつを2つ",
+        "match": "exact"
+      },
+      {
+        "kind": "heading",
+        "store": "イトーヨーカドー",
+        "name": "",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "ビヒダス飲むヨーグルト 1日分の鉄分",
+        "quantity": "4本",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "冷凍オクラ",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "叙々苑ドレッシング",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "納豆",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": "イトーヨーカドー",
+        "name": "カットサラダ",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      }
+    ]
+  },
+  {
+    "text": "じゃがいも２個\nにんじん\nネギ\nなめこ2つ\n牛肉250g\n焼くだけの味付き肉\n骨取り鮭2切れ\n味付きめかぶ（3つセットになったやつ）\nしらす（2つセットのやつ）\nタルタルソース\nカルシウム鉄牛乳\n小さいサイズのヨーグルトが4つセットになったやつ2つ\n冷凍ブロッコリー",
+    "expected": [
+      {
+        "kind": "item",
+        "store": null,
+        "name": "じゃがいも",
+        "quantity": "2個",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "にんじん",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "長ネギ",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "なめこ",
+        "quantity": "2つ",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "牛肉",
+        "quantity": "250g",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "焼くだけの味付き肉",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "骨取り鮭",
+        "quantity": "2切れ",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "味付きめかぶ",
+        "quantity": "",
+        "note": "3つセットになったやつ",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "シラス",
+        "quantity": "",
+        "note": "2つセットのやつ",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "タルタルソース",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "牛乳（スッキリカルシウム鉄）",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "小さいサイズのヨーグルトが4つセットになったやつ",
+        "quantity": "2つ",
+        "note": "",
+        "match": "maybe"
+      },
+      {
+        "kind": "item",
+        "store": null,
+        "name": "冷凍ブロッコリー",
+        "quantity": "",
+        "note": "",
+        "match": "exact"
+      }
+    ]
+  }
+]

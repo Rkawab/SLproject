@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}品目を追加 | 買い物リスト{% endblock %}
+{% block content %}
+<div id="add-page" data-add-url="{% url 'shopping:api-add' %}" data-items-url="{% url 'shopping:api-items' %}" data-suggest-url="{% url 'shopping:api-suggest' %}">
+  <div class="add-sticky"><div class="add-heading"><a href="{% url 'shopping:list' %}" class="back-link">← リストに戻る</a><span id="added-count" class="muted">0件追加済</span></div>
+    <form id="manual-form" class="manual-form">{% csrf_token %}<label for="manual-name" class="visually-hidden">品名を入力</label><input id="manual-name" placeholder="品名を入力…" maxlength="800" autocomplete="off"><button class="btn btn-primary" type="submit">追加</button></form>
+    <div id="suggestions" class="suggestions" aria-live="polite" hidden></div>
+    <nav class="genre-jumps" aria-label="ジャンルに移動"><a href="#frequent">よく買う</a>{% for section in sections %}<a href="#section-{{ section.pk }}" data-section-jump="{{ section.pk }}" {% if not section.page_items %}hidden{% endif %}>{{ section.name }}</a>{% endfor %}</nav>
+  </div>
+  <section id="frequent" class="chip-section"><h2>よく買う</h2><div class="chips">{% for item in frequent %}<button type="button" class="item-chip" data-item-id="{{ item.pk }}">{{ item.name }}</button>{% endfor %}</div></section>
+  {% for section in sections %}<section id="section-{{ section.pk }}" class="chip-section" {% if not section.page_items %}hidden{% endif %}><h2>{{ section.name }}</h2><div class="chips">{% for item in section.page_items %}<button type="button" class="item-chip" data-item-id="{{ item.pk }}">{{ item.name }}</button>{% endfor %}</div></section>{% endfor %}
+  <noscript><p class="notice">品目の追加にはJavaScriptを有効にしてください。</p></noscript>
+</div>
+{{ initial_entries|json_script:'initial-entries' }}{{ section_data|json_script:'section-data' }}
+<div class="bottom-bar"><a class="btn btn-outline-primary" href="{% url 'shopping:list' %}">リストに戻る</a><a class="btn btn-primary" href="{% url 'shopping:paste' %}" id="paste-link">LINEから貼り付け</a></div>
+{% endblock %}

@@ -1,0 +1,2 @@
+{% extends 'base.html' %}
+{% block content %}<h1>ジャンルを削除しますか？</h1><p>「{{ section.name }}」の品目{{ count }}件を「その他」に移してから、ジャンルを削除します。</p><form method="post">{% csrf_token %}<input type="hidden" name="section_id" value="{{ section.pk }}"><input type="hidden" name="action" value="delete"><input type="hidden" name="confirm" value="yes"><div class="form-actions"><a class="btn btn-outline-secondary" href="{% url 'shopping:sections' %}">戻る</a><button class="btn btn-danger">品目を移して削除</button></div></form>{% endblock %}

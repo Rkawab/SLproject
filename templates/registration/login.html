@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block title %}ログイン | 買い物リスト{% endblock %}
+{% block content %}
+<section class="login-panel"><p class="eyebrow">ふたりの買い物を、ひとつに。</p><h1>おかえりなさい</h1><p class="muted">ログインして買い物リストを開きます。</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<input type="hidden" name="next" value="{{ next }}"><button class="btn btn-primary w-100">ログイン</button></form></section>
+{% endblock %}

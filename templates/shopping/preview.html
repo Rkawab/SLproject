@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}取込の確認 | 買い物リスト{% endblock %}
+{% block content %}<a href="{% url 'shopping:paste' %}" class="back-link">← 貼り付けに戻る</a><h1>取り込む品目を確認</h1><p class="muted">数量・メモ・店を直してから追加できます。チェックした行だけを取り込みます。</p>
+<form method="post" id="preview-form">{% csrf_token %}<input type="hidden" name="action" value="confirm"><input type="hidden" name="token" value="{{ token }}">
+{% for row in rows %}{% if row.form %}<article class="preview-card {% if row.parsed.kind == 'excluded' %}excluded{% endif %}">
+  <div class="preview-heading"><label>{{ row.form.include }} 取り込む</label><span class="status-badge">{% if row.parsed.kind == 'excluded' %}除外{% elif row.parsed.duplicate %}重複{% elif row.parsed.match.kind == 'exact' %}既存{% elif row.parsed.match.kind == 'maybe' %}もしかして{% else %}新規{% endif %}</span></div>
+  <small class="original-line">{{ row.parsed.raw }}</small>{{ row.form.non_field_errors }}
+  <label>品名{{ row.form.name }}{{ row.form.name.errors }}</label>
+  <div class="preview-grid"><label>数量{{ row.form.quantity }}{{ row.form.quantity.errors }}</label><label>店{{ row.form.store }}{{ row.form.store.errors }}</label></div>
+  <label>メモ{{ row.form.note }}{{ row.form.note.errors }}</label>
+  {% if row.parsed.match.kind != 'exact' or row.parsed.kind == 'excluded' %}<label>品目の確認{{ row.form.choice }}{{ row.form.choice.errors }}</label><label>新規品目のジャンル{{ row.form.section }}{{ row.form.section.errors }}</label>{% else %}{{ row.form.choice.as_hidden }}{{ row.form.section.as_hidden }}{% endif %}
+</article>{% else %}<h2 class="import-heading">{{ row.parsed.raw }} <small>→ {{ row.parsed.store.name|default:'店未指定' }}</small></h2>{% endif %}{% endfor %}
+<div class="bottom-bar"><button type="submit" class="btn btn-primary" id="import-confirm">選択した品目を追加</button></div></form>{% endblock %}

@@ -1,0 +1,3 @@
+{% extends 'base.html' %}
+{% block title %}LINEから貼り付け | 買い物リスト{% endblock %}
+{% block content %}<a href="{% url 'shopping:add' %}" class="back-link">← 追加に戻る</a><h1>LINEから貼り付け</h1><p class="muted">買う物が書かれた文を、そのまま貼り付けてください。次の画面で確認できます。</p><form method="post" action="{% url 'shopping:paste-preview' %}">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary w-100">読み取る</button></form>{% endblock %}

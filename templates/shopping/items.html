@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}品目の管理 | 買い物リスト{% endblock %}
+{% block content %}
+<a href="{% url 'shopping:list' %}" class="back-link">← リストに戻る</a><h1>品目の管理</h1><a href="{% url 'shopping:sections' %}" class="btn btn-outline-primary">ジャンルを管理</a>
+{% if pairs %}<details class="duplicate-pairs"><summary>重複の可能性（{{ pairs|length }}組）</summary>{% for first,second in pairs %}<a href="{% url 'shopping:item-merge' first.pk %}?target={{ second.pk }}">{{ first.name }} / {{ second.name }} → 統合</a>{% endfor %}</details>{% endif %}
+<div class="master-toolbar"><button type="button" id="selection-mode" class="btn btn-outline-primary" aria-pressed="false">選択</button></div>
+<form id="move-form" method="post">{% csrf_token %}<input type="hidden" name="action" value="move"><div id="move-tools" hidden><label for="move-section">移動先のジャンル</label><select name="section" id="move-section" required>{% for section in sections %}<option value="{{ section.pk }}">{{ section.name }}</option>{% endfor %}</select><button class="btn btn-primary">選んだ品目を移動</button></div></form>
+{% for section in sections %}<details class="master-section"><summary>{{ section.name }} <small>{{ section.page_items|length }}件</small></summary>
+{% for item in section.page_items %}<div class="master-row {% if item.is_hidden %}muted{% endif %}"><input type="checkbox" form="move-form" name="item_ids" value="{{ item.pk }}" class="item-select" aria-label="{{ item.name }}を選択" hidden><a href="{% url 'shopping:item-edit' item.pk %}">{{ item.name }}</a>
+<form method="post">{% csrf_token %}<input type="hidden" name="item_id" value="{{ item.pk }}"><button name="action" value="favorite" aria-label="{{ item.name }}のお気に入り切替" aria-pressed="{{ item.is_favorite|yesno:'true,false' }}">{% if item.is_favorite %}★{% else %}☆{% endif %}</button><button name="action" value="hidden" aria-label="{{ item.name }}の非表示切替">{% if item.is_hidden %}表示{% else %}非表示{% endif %}</button></form></div>{% empty %}<p class="muted p-3">品目はありません。</p>{% endfor %}</details>{% endfor %}
+{% endblock %}

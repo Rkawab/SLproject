@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div id="shopping-list" data-entries-url="{% url 'shopping:api-entries' %}">
+  <div class="list-sticky"><div class="store-tabs" role="group" aria-label="店で絞り込む"><button type="button" class="store-tab active" data-store="">すべて</button>{% for store in stores %}<button type="button" class="store-tab" data-store="{{ store.pk }}">{{ store.name }}</button>{% endfor %}</div>
+  <div class="progress-heading"><span>残り <strong id="remaining">0</strong> / <span id="total">0</span></span><small id="sync-status" aria-live="polite">ふたりの共有リスト</small></div><progress id="progress" max="1" value="0" aria-label="購入の進み具合"></progress></div>
+  <div id="unchecked-entries"></div><p id="empty-message" class="empty-state" hidden></p>
+  <details id="checked-group"><summary>購入済み <span id="checked-count">0</span></summary><div id="checked-entries"></div></details>
+  <noscript><p class="notice">チェック操作にはJavaScriptを有効にしてください。</p></noscript>
+</div>
+{{ initial_entries|json_script:'initial-entries' }}
+<select id="store-options" hidden><option value="">未指定（どの店でも）</option>{% for store in stores %}<option value="{{ store.pk }}">{{ store.name }}</option>{% endfor %}</select>
+<div class="bottom-bar"><a class="btn btn-primary" href="{% url 'shopping:add' %}" id="add-link">＋ 追加</a><form action="{% url 'shopping:complete' %}" method="post" id="complete-form">{% csrf_token %}<input type="hidden" name="store_id" id="complete-store"><button class="btn btn-outline-primary" type="submit" id="complete-button">買い物完了</button></form></div>
+{% endblock %}
