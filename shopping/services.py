@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from datetime import timedelta
+from uuid import UUID
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
@@ -6,8 +8,9 @@ from django.db.models import F, Q
 from django.utils import timezone
 
 from .matching import exact_item
-from .models import Entry, Item, ItemAlias, Section
+from .models import Entry, Item, ItemAlias, Section, TapOperation
 from .normalize import make_key
+from .quantity import change_quantity, default_tap_quantity
 
 
 @dataclass
@@ -20,8 +23,20 @@ def fallback_section():
     return Section.objects.get(is_fallback=True)
 
 
+def register_item(name, section=None, store=None, user=None, quantity=""):
+    from .classification import classify_section
+
+    if not make_key(name) or len(name.strip()) > 200:
+        raise ValidationError("品目名は1〜200文字で入力してください。")
+    existing = exact_item(make_key(name))
+    if existing:
+        return existing
+    section = section or classify_section(name)
+    return _register_item(name, section, store, user, quantity)
+
+
 @transaction.atomic
-def register_item(name, section=None, store=None, user=None):
+def _register_item(name, section, store, user, quantity):
     # 品目名と別名をまたぐ登録も、この共通ロックで直列化する。
     Section.objects.select_for_update().get(is_fallback=True)
     key = make_key(name)
@@ -37,6 +52,7 @@ def register_item(name, section=None, store=None, user=None):
                 section=section or fallback_section(),
                 default_store=store,
                 created_by=user,
+                tap_quantity=default_tap_quantity(name, quantity),
             )
             item.full_clean()
             item.save()
@@ -155,3 +171,81 @@ def complete_shopping(store=None):
     return entries_for_store(
         Entry.objects.filter(completed_at__isnull=True, is_checked=True), store
     ).update(completed_at=timezone.now(), updated_at=timezone.now())
+
+
+@dataclass
+class TapResult:
+    status: str
+    entry: Entry | None
+    previous: dict | None = None
+
+
+@transaction.atomic
+def tap_item(item, action, request_id, user, store=None, quantity="", note=""):
+    try:
+        operation_id = UUID(str(request_id))
+    except (TypeError, ValueError, AttributeError) as exc:
+        raise ValidationError("操作IDが不正です。再読み込みしてください。") from exc
+    if action not in {"increment", "decrement", "remove", "restore"}:
+        raise ValidationError("数量操作が不正です。")
+    item = Item.objects.select_for_update().get(pk=item.pk)
+    operation = TapOperation.objects.filter(pk=operation_id).first()
+    entry = (
+        Entry.objects.select_for_update()
+        .filter(item=item, completed_at__isnull=True)
+        .first()
+    )
+    if operation:
+        if (
+            operation.item_id != item.pk
+            or operation.user_id != user.pk
+            or operation.action != action
+        ):
+            raise ValidationError("操作IDが別の操作に使われています。")
+        return TapResult("already_processed", entry)
+    previous = (
+        {"quantity": entry.quantity, "note": entry.note, "store_id": entry.store_id}
+        if entry
+        else None
+    )
+    if action == "remove":
+        if entry:
+            entry.delete()
+        result = TapResult("removed", None, previous)
+    elif action == "restore":
+        if entry:
+            result = TapResult("already_listed", entry)
+        else:
+            addition = add_to_list(item, quantity, note, store, user)
+            result = TapResult("restored", addition.entry)
+    elif action == "decrement" and (not entry or entry.is_checked):
+        result = TapResult("unchanged", entry)
+    else:
+        current = (
+            (entry.quantity or item.tap_quantity)
+            if entry and not entry.is_checked
+            else ""
+        )
+        updated = change_quantity(
+            current, item.tap_quantity, -1 if action == "decrement" else 1
+        )
+        if not updated:
+            if entry:
+                entry.delete()
+            result = TapResult("removed", None, previous)
+        elif entry and not entry.is_checked:
+            entry.quantity = updated
+            entry.save(update_fields=["quantity", "updated_at"])
+            result = TapResult(
+                "incremented" if action == "increment" else "decremented",
+                entry,
+                previous,
+            )
+        else:
+            addition = add_to_list(item, updated, store=store, user=user)
+            result = TapResult(addition.status, addition.entry, previous)
+    TapOperation.objects.create(id=operation_id, item=item, user=user, action=action)
+    TapOperation.objects.filter(
+        created_at__lt=timezone.now() - timedelta(days=7)
+    ).delete()
+    return result

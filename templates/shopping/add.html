@@ -7,10 +7,11 @@
     <div id="suggestions" class="suggestions" aria-live="polite" hidden></div>
     <nav class="genre-jumps" aria-label="ジャンルに移動"><a href="#frequent">よく買う</a>{% for section in sections %}<a href="#section-{{ section.pk }}" data-section-jump="{{ section.pk }}" {% if not section.page_items %}hidden{% endif %}>{{ section.name }}</a>{% endfor %}</nav>
   </div>
+  <p class="muted tap-help">タップで1単位追加・長押しで解除 <span id="tap-sync-status" role="status"></span></p>
   <section id="frequent" class="chip-section"><h2>よく買う</h2><div class="chips">{% for item in frequent %}<button type="button" class="item-chip" data-item-id="{{ item.pk }}">{{ item.name }}</button>{% endfor %}</div></section>
   {% for section in sections %}<section id="section-{{ section.pk }}" class="chip-section" {% if not section.page_items %}hidden{% endif %}><h2>{{ section.name }}</h2><div class="chips">{% for item in section.page_items %}<button type="button" class="item-chip" data-item-id="{{ item.pk }}">{{ item.name }}</button>{% endfor %}</div></section>{% endfor %}
   <noscript><p class="notice">品目の追加にはJavaScriptを有効にしてください。</p></noscript>
 </div>
-{{ initial_entries|json_script:'initial-entries' }}{{ section_data|json_script:'section-data' }}
+{{ item_data|json_script:'initial-items' }}{{ initial_entries|json_script:'initial-entries' }}{{ section_data|json_script:'section-data' }}
 <div class="bottom-bar"><a class="btn btn-outline-primary" href="{% url 'shopping:list' %}">リストに戻る</a><a class="btn btn-primary" href="{% url 'shopping:paste' %}" id="paste-link">LINEから貼り付け</a></div>
 {% endblock %}

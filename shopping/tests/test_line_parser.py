@@ -9,7 +9,9 @@ from shopping.models import Entry, Item
 
 from .test_models import SeededTestCase
 
-SAMPLES = json.loads((Path(__file__).parent / "fixtures/line_samples.json").read_text())
+SAMPLES = json.loads(
+    (Path(__file__).parent / "fixtures/line_samples.json").read_text(encoding="utf-8")
+)
 
 
 class LineParserTests(SeededTestCase):

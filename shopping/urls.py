@@ -18,6 +18,7 @@ urlpatterns = [
     path("api/entries/<int:pk>/update/", api_views.update_entry, name="api-update"),
     path("api/entries/<int:pk>/delete/", api_views.delete_entry, name="api-delete"),
     path("api/add/", api_views.add, name="api-add"),
+    path("api/items/<int:pk>/tap/", api_views.tap, name="api-tap"),
     path("api/items/", api_views.create_item, name="api-items"),
     path("api/items/suggest/", api_views.suggest, name="api-suggest"),
 ]

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Entry, Item, ItemAlias, Section, Store
+from .models import Entry, Item, ItemAlias, Section, Store, TapOperation
 
 
 class AliasInline(admin.TabularInline):
@@ -24,4 +24,4 @@ class SectionAdmin(admin.ModelAdmin):
         return False
 
 
-admin.site.register([Store, ItemAlias, Entry])
+admin.site.register([Store, ItemAlias, Entry, TapOperation])

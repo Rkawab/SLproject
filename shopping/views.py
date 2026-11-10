@@ -8,7 +8,8 @@ from django.db.models import Max, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 
-from .api_views import entry_data, open_entries
+from .api_views import entry_data, item_data, open_entries
+from .classification import classify_section
 from .forms import ImportRowForm, ItemForm, PasteForm, SectionForm
 from .line_parser import parse_lines
 from .matching import match_item
@@ -61,6 +62,7 @@ def add_page(request):
         "shopping/add.html",
         {
             "sections": sections,
+            "item_data": [item_data(item) for item in items],
             "section_data": [
                 {
                     "id": s.pk,
@@ -124,6 +126,9 @@ def paste_preview(request):
                 "quantity": match.quantity,
                 "note": match.note,
                 "store": row.store,
+                "section": classify_section(match.name)
+                if not confirming and match.kind == "new"
+                else None,
             },
         )
         if confirming:
@@ -144,7 +149,11 @@ def paste_preview(request):
                     item = Item.objects.get(pk=int(data["choice"]))
                 elif data["choice"] == "new" or not match.item:
                     item = register_item(
-                        data["name"], data["section"], data["store"], request.user
+                        data["name"],
+                        data["section"] or fallback_section(),
+                        data["store"],
+                        request.user,
+                        quantity=data["quantity"],
                     )
                 else:
                     item = match.item

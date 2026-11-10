@@ -37,6 +37,7 @@ class Command(BaseCommand):
                 default_store=stores.get(row.get("store")),
                 default_note=row.get("note", ""),
                 default_quantity=row.get("quantity", ""),
+                tap_quantity=row.get("tap_quantity", "1個"),
             )
             for alias in row.get("aliases", []):
                 ItemAlias.objects.create(item=item, alias=alias)

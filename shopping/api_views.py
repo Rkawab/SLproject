@@ -12,7 +12,7 @@ from django.views.decorators.http import require_GET, require_POST
 from .matching import match_item, split_quantity_note
 from .models import Entry, Item, Section, Store
 from .normalize import make_key
-from .services import add_alias, add_to_list, register_item
+from .services import add_alias, add_to_list, register_item, tap_item
 
 
 def api(view):
@@ -62,6 +62,9 @@ def item_data(item):
         "id": item.pk,
         "name": item.name,
         "section_id": item.section_id,
+        "section": item.section.name,
+        "tap_quantity": item.tap_quantity,
+        "tap_url": reverse("shopping:api-tap", args=[item.pk]),
         "quantity": item.default_quantity,
         "note": item.default_note,
         "store_id": item.default_store_id,
@@ -73,6 +76,7 @@ def entry_data(entry):
     return {
         "id": entry.pk,
         "item_id": entry.item_id,
+        "tap_quantity": entry.item.tap_quantity,
         "name": entry.item.name,
         "quantity": entry.quantity,
         "note": entry.note,
@@ -184,6 +188,19 @@ def add(request):
         raise ValueError("品名を入力してください。")
     if result.item:
         return added_response(result.item, request, data, result.quantity, result.note)
+    if result.kind == "new" and data.get("auto_register") is True:
+        item = register_item(
+            result.name,
+            store=optional_object(Store, data.get("store_id")),
+            user=request.user,
+            quantity=result.quantity,
+        )
+        response = added_response(
+            item, request, data, result.quantity or item.tap_quantity, result.note
+        )
+        payload = json.loads(response.content)
+        payload["auto_registered"] = True
+        return JsonResponse(payload)
     return JsonResponse(
         {
             "status": result.kind,
@@ -220,10 +237,11 @@ def suggest(request):
 
 @require_POST
 @api
-@transaction.atomic
 def create_item(request):
     data = request.payload
     name = text_field(data, "name", 200)
+    quantity = text_field(data, "quantity", 100)
+    text_field(data, "note", 500)
     if data.get("alias_item_id"):
         item = Item.objects.get(pk=int(data["alias_item_id"]))
         add_alias(item, name)
@@ -233,5 +251,30 @@ def create_item(request):
             optional_object(Section, data.get("section_id")),
             optional_object(Store, data.get("store_id")),
             request.user,
+            quantity=quantity,
         )
-    return added_response(item, request, data)
+    return added_response(item, request, data, quantity or item.tap_quantity)
+
+
+@require_POST
+@api
+def tap(request, pk):
+    data = request.payload
+    result = tap_item(
+        get_object_or_404(Item, pk=pk),
+        text_field(data, "action", 16, "increment"),
+        text_field(data, "request_id", 40),
+        request.user,
+        optional_object(Store, data.get("store_id")),
+        text_field(data, "quantity", 100),
+        text_field(data, "note", 500),
+    )
+    item = Item.objects.get(pk=pk)
+    return JsonResponse(
+        {
+            "status": result.status,
+            "entry": entry_data(result.entry) if result.entry else None,
+            "previous": result.previous,
+            "item": item_data(item),
+        }
+    )

@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import Q
 
 from .normalize import make_key
+from .quantity import parse_quantity
 
 
 class Store(models.Model):
@@ -48,6 +49,12 @@ class Item(models.Model):
     name_key = models.CharField(max_length=300, unique=True, editable=False)
     default_note = models.CharField("既定のメモ", max_length=500, blank=True)
     default_quantity = models.CharField("既定数量", max_length=100, blank=True)
+    tap_quantity = models.CharField(
+        "1タップの数量",
+        max_length=100,
+        default="1個",
+        help_text="例: 1個、1パック、100g",
+    )
     default_store = models.ForeignKey(
         Store, null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -65,6 +72,11 @@ class Item(models.Model):
         ordering = ["-is_favorite", "-use_count", "name"]
 
     def clean(self):
+        amount, _ = parse_quantity(self.tap_quantity)
+        if amount <= 0:
+            raise ValidationError(
+                {"tap_quantity": "1タップの数量は0より大きくしてください。"}
+            )
         self.name = self.name.strip()
         self.name_key = make_key(self.name)
         if not self.name_key:
@@ -154,3 +166,13 @@ class Entry(models.Model):
                 name="one_open_entry_per_item",
             )
         ]
+
+
+class TapOperation(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False)
+    item = models.ForeignKey(Item, null=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL
+    )
+    action = models.CharField(max_length=16)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)

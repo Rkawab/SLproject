@@ -11,12 +11,13 @@ from shopping.normalize import make_key
 
 
 @override_settings(
+    OPENAI_API_KEY="",
     STORAGES={
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
         },
-    }
+    },
 )
 class SeededTestCase(TestCase):
     @classmethod

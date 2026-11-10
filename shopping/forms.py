@@ -49,6 +49,7 @@ class ItemForm(forms.ModelForm):
             "section",
             "default_store",
             "default_quantity",
+            "tap_quantity",
             "default_note",
             "is_favorite",
             "is_hidden",

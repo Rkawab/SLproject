@@ -107,6 +107,81 @@
     }, true);
     el.addEventListener('contextmenu', e => e.preventDefault());
   }
+
+  // UUIDはHTTPのLAN接続でも生成できるよう、randomUUIDに依存しない。
+  function operationId() {
+    const bytes = new Uint8Array(16);
+    if (window.crypto?.getRandomValues) window.crypto.getRandomValues(bytes);
+    else bytes.forEach((_, index) => { bytes[index] = Math.floor(Math.random() * 256); });
+    bytes[6] = (bytes[6] & 15) | 64;
+    bytes[8] = (bytes[8] & 63) | 128;
+    const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+  }
+  const tapQueueKey = `shopping-tap-operations-v1-${document.body.dataset.userId}`;
+  let tapQueue = [], sendingTaps = false, tapRetry;
+  let tapResultHandler = () => {}, tapQueueHandler = () => {};
+  try {
+    const saved = JSON.parse(localStorage.getItem(tapQueueKey) || '[]');
+    if (Array.isArray(saved)) tapQueue = saved.filter(op => Number.isInteger(op.item_id) && op.item_id > 0 && typeof op.request_id === 'string' && ['increment','decrement','remove','restore'].includes(op.action));
+  } catch { /* localStorageが使えない場合も画面内で処理する */ }
+  function saveTaps() {
+    try { localStorage.setItem(tapQueueKey, JSON.stringify(tapQueue)); } catch {}
+    tapQueueHandler();
+  }
+  async function flushTaps() {
+    if (sendingTaps || !document.body.dataset.userId) return;
+    sendingTaps = true;
+    clearTimeout(tapRetry);
+    try {
+      while (tapQueue.length) {
+        const op = tapQueue[0];
+        try {
+          const url = document.body.dataset.tapUrlPattern.replace('/0/', `/${op.item_id}/`);
+          const result = await post(url, op);
+          tapQueue = tapQueue.filter(pending => pending.request_id !== op.request_id);
+          tapResultHandler(result, op);
+          saveTaps();
+        } catch (error) {
+          if (error.status >= 400 && error.status < 500 && error.status !== 401) {
+            tapQueue = tapQueue.filter(pending => pending.request_id !== op.request_id);
+            saveTaps();
+            toast(error.message);
+          } else {
+            toast(error.status === 401 ? 'ログインし直すと数量変更を再送できます。' : '数量変更は送信待ちです。接続が戻ったら再送します。');
+            tapRetry = setTimeout(flushTaps, 3000);
+            break;
+          }
+        }
+      }
+    } finally { sendingTaps = false; tapQueueHandler(); }
+  }
+  function queueTap(item, actionName, restore = {}) {
+    tapQueue.push({item_id:item.id, item, action:actionName, request_id:operationId(), store_id:selectedStore, ...restore});
+    saveTaps();
+    flushTaps();
+  }
+  // 数値の正はサーバーのDecimal計算。ここは送信待ち中の表示だけに使う。
+  function previewQuantity(current, stepText, direction = 1) {
+    const parse = value => {
+      const match = String(value || '').normalize('NFKC').match(/^\s*(\d+(?:\.\d+)?)\s*(個|パック|玉|本|枚|足|切れ|つ|袋|房|缶|箱|組|セット|g|kg|ml|L)?\s*$/i);
+      if (!match) return null;
+      const raw = match[2] || '個';
+      return {amount:Number(match[1]),unit:['g','kg','ml'].includes(raw.toLowerCase())?raw.toLowerCase():(raw.toLowerCase()==='l'?'L':raw)};
+    };
+    const step = parse(stepText), before = current ? parse(current) : null;
+    if (!step || (current && !before)) return current || stepText;
+    const unit = before?.unit || step.unit;
+    let amount = step.amount;
+    if (before && ['g','kg'].includes(unit)) {
+      const grams = ['g','kg'].includes(step.unit) ? step.amount * (step.unit==='kg'?1000:1) : 100;
+      amount = grams / (unit==='kg'?1000:1);
+    } else if (before && unit !== step.unit) amount = 1;
+    const total = Math.round(((before?.amount || 0) + direction * amount) * 1000000) / 1000000;
+    return total > 0 ? `${total}${unit}` : '';
+  }
+  window.addEventListener('online', flushTaps);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'hidden') flushTaps(); });
   let selectedStore = '';
   try {
     selectedStore = localStorage.getItem('shopping-store') || '';
@@ -171,14 +246,15 @@
       $('#checked-group').hidden = !checked.length;
       $('#empty-message').hidden = unchecked.length > 0;
       $('#empty-message').textContent = visible.length ? '全部買えました。おつかれさま！' : 'リストは空です。＋追加から買う物を選びましょう。';
-      $('#complete-button').disabled = !checked.length || queue.length > 0;
+      $('#complete-button').disabled = !checked.length || queue.length > 0 || tapQueue.length > 0;
       $('#complete-button').classList.toggle('btn-primary', !unchecked.length && checked.length > 0);
       $('#complete-store').value = selectedStore;
       $$('.store-tab').forEach(tab => {
         tab.classList.toggle('active', tab.dataset.store === selectedStore);
         tab.setAttribute('aria-pressed', String(tab.dataset.store === selectedStore));
       });
-      $('#sync-status').textContent = queue.length ? `${queue.length}件を送信待ち` : 'ふたりの共有リスト';
+      const pending = queue.length + tapQueue.length;
+      $('#sync-status').textContent = pending ? `${pending}件を送信待ち` : 'ふたりの共有リスト';
     }
 
     function row(entry, highlight) {
@@ -334,7 +410,7 @@
       render();
     }));
     $('#complete-form').addEventListener('submit', e => {
-      if (queue.length || !confirm('表示中の店の購入済み品目を片付けますか？未購入の品目は残ります。')) e.preventDefault();
+      if (queue.length || tapQueue.length || !confirm('表示中の店の購入済み品目を片付けますか？未購入の品目は残ります。')) e.preventDefault();
     });
 
     function schedule() {
@@ -346,6 +422,13 @@
     }
     document.addEventListener('visibilitychange', schedule);
     window.addEventListener('online', () => refresh().then(flush));
+    tapResultHandler = result => {
+      entries = entries.filter(entry => entry.item_id !== result.item.id);
+      if (result.entry) entries.push(result.entry);
+      mutationRevision++;
+      render();
+    };
+    tapQueueHandler = () => render();
     applyPending();
     render();
     schedule();
@@ -354,23 +437,48 @@
   const addPage = $('#add-page');
   if (addPage) {
     const current = new Map(JSON.parse($('#initial-entries').textContent).map(entry => [entry.item_id, entry]));
-    const sections = JSON.parse($('#section-data').textContent),
-      busy = new Set();
+    const sections = JSON.parse($('#section-data').textContent);
+    const items = new Map(JSON.parse($('#initial-items').textContent).map(item => [item.id,item]));
     let added = 0,
       suggestTimer, suggestVersion = 0;
     const input = $('#manual-name');
 
+    function visibleEntry(id) {
+      let entry = current.get(id) ? {...current.get(id)} : null;
+      const item = items.get(id);
+      if (!item) return entry;
+      for (const op of tapQueue.filter(op => op.item_id === id)) {
+        if (op.action === 'remove') entry = null;
+        else if (op.action === 'restore') entry ||= {quantity:op.quantity,note:op.note,store_id:op.store_id,is_checked:false};
+        else if (op.action === 'increment') {
+          const quantity = previewQuantity(entry && !entry.is_checked ? (entry.quantity || item.tap_quantity) : '',item.tap_quantity);
+          entry = {...entry, quantity, is_checked:false};
+        } else if (entry && !entry.is_checked) {
+          const quantity = previewQuantity(entry.quantity || item.tap_quantity,item.tap_quantity,-1);
+          entry = quantity ? {...entry,quantity} : null;
+        }
+      }
+      return entry;
+    }
     function paint() {
       $$('.item-chip').forEach(chip => {
-        const id = Number(chip.dataset.itemId);
-        chip.classList.toggle('selected', current.has(id));
-        chip.setAttribute('aria-pressed', String(current.has(id)));
-        chip.disabled = busy.has(id);
+        const id = Number(chip.dataset.itemId), item = items.get(id), entry = visibleEntry(id);
+        chip.classList.toggle('selected',Boolean(entry));
+        chip.classList.toggle('tap-pending',tapQueue.some(op=>op.item_id===id));
+        chip.setAttribute('aria-pressed',String(Boolean(entry)));
+        chip.disabled = false;
+        if (item) {
+          const badge = node('span',entry ? (entry.quantity || item.tap_quantity) : `＋${item.tap_quantity}`,'quantity-badge');
+          chip.replaceChildren(node('span',item.name,'chip-name'),badge);
+          chip.setAttribute('aria-label',`${item.name} ${entry ? (entry.quantity || item.tap_quantity) : '未追加'}、タップで${item.tap_quantity}追加`);
+        }
       });
       $('#added-count').textContent = `${added}件追加済`;
+      $('#tap-sync-status').textContent = tapQueue.length ? `（${tapQueue.length}回を送信待ち）` : '';
     }
 
     function ensureChip(item) {
+      items.set(item.id,item);
       if (item.is_hidden) return;
       const section = $(`#section-${item.section_id}`);
       if (!section) return;
@@ -396,7 +504,7 @@
       }
       if (result.status !== 'already_listed') added++;
       paint();
-      toast(result.status === 'already_listed' ? 'すでにリストにあります' : `${result.item.name}を追加しました`);
+      toast(result.status === 'already_listed' ? 'すでにリストにあります' : `${result.item.name}を追加しました${result.auto_registered ? `（${result.item.section}）` : ''}`);
       input.value = '';
       $('#suggestions').hidden = true;
       sheet.close();
@@ -491,61 +599,35 @@
           button.append(node('small', section.description));
           choices.append(button);
         });
-        body.append(node('p', 'ジャンルを選んで追加します。', 'muted'), choices, action('ジャンルを選ばず追加（その他）', () => register({}), 'btn btn-outline-primary'));
+        body.append(action('ジャンルを自動判定して追加', () => register({})), node('p', '手動でジャンルを選ぶこともできます。', 'muted'), choices);
       }
     }
 
     function bindChip(chip) {
-      const id = Number(chip.dataset.itemId),
-        name = chip.textContent;
+      const id = Number(chip.dataset.itemId);
       longPress(chip, () => {
-        const entry = current.get(id);
-        const body = openSheet(`${name}の数量・メモ`),
-          quantity = field('数量', entry?.quantity),
-          note = field('メモ', entry?.note);
-        body.append(quantity.wrap, note.wrap, action(entry ? '更新' : '追加', async () => {
-          if (entry) {
-            try {
-              const result = await post(entry.update_url, {
-                quantity: quantity.input.value,
-                note: note.input.value
-              });
-              current.set(id, result.entry);
-              sheet.close();
-              toast('更新しました');
-            } catch (error) {
-              toast(error.message);
-            }
-          } else await send({
-            item_id: id,
-            quantity: quantity.input.value,
-            note: note.input.value,
-            store_id: selectedStore
-          });
-        }));
+        const item = items.get(id), entry = visibleEntry(id);
+        if (!entry) return;
+        const snapshot = {quantity:entry.quantity || item.tap_quantity,note:entry.note || '',store_id:entry.store_id || selectedStore};
+        queueTap(item,'remove');
+        toast(`${item.name}をリストから外しました`,()=>queueTap(item,'restore',snapshot));
       });
-      chip.addEventListener('click', async () => {
-        if (busy.has(id)) return;
-        busy.add(id);
-        paint();
-        try {
-          const entry = current.get(id);
-          if (entry) {
-            await post(entry.delete_url, {});
-            current.delete(id);
-            toast(`${name}をリストから外しました`);
-          } else await send({
-            item_id: id,
-            store_id: selectedStore
-          }, false);
-        } catch (error) {
-          toast(error.message);
-        } finally {
-          busy.delete(id);
-          paint();
-        }
+      chip.addEventListener('click', () => {
+        const item = items.get(id);
+        if (!item) return;
+        queueTap(item,'increment');
+        const entry = visibleEntry(id);
+        toast(`${item.name} ${entry?.quantity || item.tap_quantity}`,()=>queueTap(item,'decrement'));
       });
     }
+    tapResultHandler = (result,op) => {
+      if (result.entry) current.set(result.item.id,result.entry);
+      else current.delete(result.item.id);
+      ensureChip(result.item);
+      if (['added','revived','restored'].includes(result.status)) added++;
+      paint();
+    };
+    tapQueueHandler = () => paint();
     $$('.item-chip').forEach(bindChip);
     paint();
     $('#manual-form').addEventListener('submit', async e => {
@@ -556,6 +638,7 @@
       button.disabled = true;
       await send({
         raw: input.value,
+        auto_register: true,
         store_id: selectedStore
       });
       button.disabled = false;
@@ -614,4 +697,5 @@
       $('#import-confirm').disabled = true;
     });
   }
+  flushTaps();
 })();

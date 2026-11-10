@@ -594,10 +594,7 @@ progress::-webkit-progress-value {
   color: var(--teal-dark)
 }
 
-.item-chip.selected:before {
-  content: '✓ ';
-  font-weight: bold
-}
+
 
 .item-chip:disabled {
   opacity: .6
@@ -857,3 +854,10 @@ progress::-webkit-progress-value {
   --bs-btn-disabled-bg: var(--teal);
   --bs-btn-disabled-border-color: var(--teal);
 }
+
+.item-chip { display: inline-flex; align-items: center; gap: 8px; }
+.chip-name { overflow-wrap: anywhere; min-width: 0; }
+.quantity-badge { flex-shrink: 0; font-size: 13px; color: var(--teal-dark); background: var(--mint); border-radius: 10px; padding: 3px 6px; }
+.item-chip.selected .quantity-badge { background: #c7eade; font-weight: 700; }
+.item-chip.tap-pending .quantity-badge { opacity: .6; }
+.tap-help { margin: 12px 0; font-size: 14px; }
