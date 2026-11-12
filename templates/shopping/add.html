@@ -2,7 +2,8 @@
 {% block title %}品目を追加 | 買い物リスト{% endblock %}
 {% block content %}
 <div id="add-page" data-add-url="{% url 'shopping:api-add' %}" data-items-url="{% url 'shopping:api-items' %}" data-suggest-url="{% url 'shopping:api-suggest' %}">
-  <div class="add-sticky"><div class="add-heading"><a href="{% url 'shopping:list' %}" class="back-link">← リストに戻る</a><span id="added-count" class="muted">0件追加済</span></div>
+  <div class="add-sticky"><div class="add-heading"><a href="{% url 'shopping:list' %}" class="back-link">← リストに戻る</a><span id="added-count" class="muted">選択中 0件</span></div>
+    <div class="add-selection-tools"><button type="button" id="clear-selection" class="btn btn-outline-danger" disabled>選択を全解除</button></div>
     <form id="manual-form" class="manual-form">{% csrf_token %}<label for="manual-name" class="visually-hidden">品名を入力</label><input id="manual-name" placeholder="品名を入力…" maxlength="800" autocomplete="off"><button class="btn btn-primary" type="submit">追加</button></form>
     <div id="suggestions" class="suggestions" aria-live="polite" hidden></div>
     <nav class="genre-jumps" aria-label="ジャンルに移動"><a href="#frequent">よく買う</a>{% for section in sections %}<a href="#section-{{ section.pk }}" data-section-jump="{{ section.pk }}" {% if not section.page_items %}hidden{% endif %}>{{ section.name }}</a>{% endfor %}</nav>

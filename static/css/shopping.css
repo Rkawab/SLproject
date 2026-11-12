@@ -538,6 +538,16 @@ progress::-webkit-progress-value {
   font-size: 14px
 }
 
+.add-selection-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.add-selection-tools button {
+  font-size: 14px;
+}
+
 .manual-form {
   display: flex;
   gap: 8px;

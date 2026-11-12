@@ -46,6 +46,7 @@ class ItemForm(forms.ModelForm):
         model = Item
         fields = [
             "name",
+            "name_reading",
             "section",
             "default_store",
             "default_quantity",

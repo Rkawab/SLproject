@@ -15,6 +15,7 @@ from .line_parser import parse_lines
 from .matching import match_item
 from .models import Item, ItemAlias, Section, Store
 from .normalize import make_key
+from .reading import item_sort_key
 from .services import (
     add_alias,
     add_to_list,
@@ -53,7 +54,10 @@ def complete(request):
 
 @login_required
 def add_page(request):
-    items = list(Item.objects.filter(is_hidden=False).select_related("section"))
+    items = sorted(
+        Item.objects.filter(is_hidden=False).select_related("section"),
+        key=item_sort_key,
+    )
     sections = list(Section.objects.all())
     for section in sections:
         section.page_items = [item for item in items if item.section_id == section.pk]
@@ -199,7 +203,7 @@ def items(request):
                 setattr(item, field, not getattr(item, field))
                 item.save(update_fields=[field])
         return redirect("shopping:items")
-    all_items = list(Item.objects.select_related("section"))
+    all_items = sorted(Item.objects.select_related("section"), key=item_sort_key)
     sections = list(Section.objects.all())
     for section in sections:
         section.page_items = [

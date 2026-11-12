@@ -10,9 +10,16 @@ class AliasInline(admin.TabularInline):
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ["name", "section", "default_store", "is_favorite", "is_hidden"]
+    list_display = [
+        "name",
+        "name_reading",
+        "section",
+        "default_store",
+        "is_favorite",
+        "is_hidden",
+    ]
     list_filter = ["section", "is_hidden"]
-    search_fields = ["name", "aliases__alias"]
+    search_fields = ["name", "name_reading", "aliases__alias"]
     inlines = [AliasInline]
 
 

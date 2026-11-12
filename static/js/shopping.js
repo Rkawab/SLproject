@@ -81,6 +81,12 @@
     return button;
   }
 
+  function compareNames(a, b) {
+    const left = a.sort_key || a.name_reading || a.name;
+    const right = b.sort_key || b.name_reading || b.name;
+    return left < right ? -1 : left > right ? 1 : a.id - b.id;
+  }
+
   function longPress(el, callback) {
     let timer, fired = false,
       startX, startY;
@@ -156,10 +162,15 @@
       }
     } finally { sendingTaps = false; tapQueueHandler(); }
   }
-  function queueTap(item, actionName, restore = {}) {
-    tapQueue.push({item_id:item.id, item, action:actionName, request_id:operationId(), store_id:selectedStore, ...restore});
+  function queueTapBatch(operations) {
+    tapQueue.push(...operations.map(({item, action, ...restore}) => ({
+      item_id:item.id, item, action, request_id:operationId(), store_id:selectedStore, ...restore
+    })));
     saveTaps();
     flushTaps();
+  }
+  function queueTap(item, actionName, restore = {}) {
+    queueTapBatch([{item, action:actionName, ...restore}]);
   }
   // 数値の正はサーバーのDecimal計算。ここは送信待ち中の表示だけに使う。
   function previewQuantity(current, stepText, direction = 1) {
@@ -222,7 +233,8 @@
 
     function render(highlights = new Set()) {
       applyPending();
-      const visible = entries.filter(e => !selectedStore || !e.store_id || String(e.store_id) === selectedStore);
+      const visible = entries.filter(e => !selectedStore || !e.store_id || String(e.store_id) === selectedStore)
+        .sort((a, b) => Number(a.is_fallback) - Number(b.is_fallback) || a.section_order - b.section_order || a.section_id - b.section_id || compareNames(a, b));
       const unchecked = visible.filter(e => !e.is_checked),
         checked = visible.filter(e => e.is_checked);
       $('#remaining').textContent = unchecked.length;
@@ -436,17 +448,22 @@
 
   const addPage = $('#add-page');
   if (addPage) {
+    const sticky = $('.add-sticky', addPage);
+    const updateJumpOffset = () => {
+      document.documentElement.style.scrollPaddingTop = `${Math.ceil(sticky.getBoundingClientRect().height)}px`;
+    };
+    updateJumpOffset();
+    window.addEventListener('resize', updateJumpOffset);
+    if (window.ResizeObserver) new ResizeObserver(updateJumpOffset).observe(sticky);
     const current = new Map(JSON.parse($('#initial-entries').textContent).map(entry => [entry.item_id, entry]));
     const sections = JSON.parse($('#section-data').textContent);
     const items = new Map(JSON.parse($('#initial-items').textContent).map(item => [item.id,item]));
-    let added = 0,
-      suggestTimer, suggestVersion = 0;
+    let manualSending = 0, suggestTimer, suggestVersion = 0;
     const input = $('#manual-name');
 
     function visibleEntry(id) {
       let entry = current.get(id) ? {...current.get(id)} : null;
-      const item = items.get(id);
-      if (!item) return entry;
+      const item = items.get(id) || tapQueue.find(op => op.item_id === id)?.item || {tap_quantity:entry?.tap_quantity || '1個'};
       for (const op of tapQueue.filter(op => op.item_id === id)) {
         if (op.action === 'remove') entry = null;
         else if (op.action === 'restore') entry ||= {quantity:op.quantity,note:op.note,store_id:op.store_id,is_checked:false};
@@ -459,6 +476,14 @@
         }
       }
       return entry;
+    }
+    function selectedItems() {
+      const ids = new Set([...current.keys(), ...items.keys(), ...tapQueue.map(op => op.item_id)]);
+      return Array.from(ids).filter(id => visibleEntry(id)).map(id => (
+        items.get(id) || tapQueue.find(op => op.item_id === id)?.item || {
+          id, name:current.get(id).name, tap_quantity:current.get(id).tap_quantity || '1個'
+        }
+      ));
     }
     function paint() {
       $$('.item-chip').forEach(chip => {
@@ -473,7 +498,9 @@
           chip.setAttribute('aria-label',`${item.name} ${entry ? (entry.quantity || item.tap_quantity) : '未追加'}、タップで${item.tap_quantity}追加`);
         }
       });
-      $('#added-count').textContent = `${added}件追加済`;
+      const selected = selectedItems();
+      $('#added-count').textContent = `選択中 ${selected.length}件`;
+      $('#clear-selection').disabled = !selected.length || manualSending > 0;
       $('#tap-sync-status').textContent = tapQueue.length ? `（${tapQueue.length}回を送信待ち）` : '';
     }
 
@@ -482,13 +509,16 @@
       if (item.is_hidden) return;
       const section = $(`#section-${item.section_id}`);
       if (!section) return;
-      if (!$$('.item-chip', section).some(c => Number(c.dataset.itemId) === item.id)) {
-        const chip = node('button', item.name, 'item-chip');
+      const chips = $('.chips', section);
+      let chip = $$('.item-chip', section).find(c => Number(c.dataset.itemId) === item.id);
+      if (!chip) {
+        chip = node('button', item.name, 'item-chip');
         chip.type = 'button';
         chip.dataset.itemId = item.id;
-        $('.chips', section).append(chip);
         bindChip(chip);
       }
+      const following = $$('.item-chip', section).find(other => other !== chip && compareNames(item, items.get(Number(other.dataset.itemId))) < 0);
+      chips.insertBefore(chip, following || null);
       section.hidden = false;
       const jump = $(`[data-section-jump="${item.section_id}"]`);
       if (jump) jump.hidden = false;
@@ -502,7 +532,6 @@
         duplicateSheet(result);
         return;
       }
-      if (result.status !== 'already_listed') added++;
       paint();
       toast(result.status === 'already_listed' ? 'すでにリストにあります' : `${result.item.name}を追加しました${result.auto_registered ? `（${result.item.section}）` : ''}`);
       input.value = '';
@@ -510,12 +539,17 @@
       sheet.close();
     }
     async function send(data, manual = true) {
+      manualSending++;
+      paint();
       try {
         const result = await post(addPage.dataset.addUrl, data);
         if (result.status === 'maybe' || result.status === 'new') matchSheet(result);
         else resultAdded(result, manual);
       } catch (error) {
         toast(error.message);
+      } finally {
+        manualSending--;
+        paint();
       }
     }
 
@@ -624,12 +658,18 @@
       if (result.entry) current.set(result.item.id,result.entry);
       else current.delete(result.item.id);
       ensureChip(result.item);
-      if (['added','revived','restored'].includes(result.status)) added++;
       paint();
     };
     tapQueueHandler = () => paint();
     $$('.item-chip').forEach(bindChip);
     paint();
+    $('#clear-selection').addEventListener('click', () => {
+      const selected = selectedItems();
+      if (!selected.length || manualSending) return;
+      if (!confirm(`共有リストの${selected.length}品目の選択をすべて解除しますか？すべての店舗・カテゴリーが対象です。`)) return;
+      queueTapBatch(selected.map(item => ({item, action:'remove'})));
+      toast('選択をすべて解除しました');
+    });
     $('#manual-form').addEventListener('submit', async e => {
       e.preventDefault();
       if (!input.value.trim()) return;

@@ -5,6 +5,7 @@ from django.db.models import Q
 
 from .normalize import make_key
 from .quantity import parse_quantity
+from .reading import normalize_reading, reading_for_name, reading_sort_key
 
 
 class Store(models.Model):
@@ -47,6 +48,12 @@ class Section(models.Model):
 class Item(models.Model):
     name = models.CharField("品目名", max_length=200, unique=True)
     name_key = models.CharField(max_length=300, unique=True, editable=False)
+    name_reading = models.CharField(
+        "読み（並び順）",
+        max_length=1000,
+        blank=True,
+        help_text="空欄なら名前から自動入力します。読みが違う場合はかなで修正できます。",
+    )
     default_note = models.CharField("既定のメモ", max_length=500, blank=True)
     default_quantity = models.CharField("既定数量", max_length=100, blank=True)
     tap_quantity = models.CharField(
@@ -79,6 +86,19 @@ class Item(models.Model):
             )
         self.name = self.name.strip()
         self.name_key = make_key(self.name)
+        previous = (
+            Item.objects.filter(pk=self.pk).values("name", "name_reading").first()
+            if self.pk
+            else None
+        )
+        if not self.name_reading.strip() or (
+            previous
+            and self.name != previous["name"]
+            and self.name_reading == previous["name_reading"]
+        ):
+            self.name_reading = reading_for_name(self.name)
+        else:
+            self.name_reading = normalize_reading(self.name_reading)
         if not self.name_key:
             raise ValidationError("品目名を入力してください。")
         if Item.objects.filter(name_key=self.name_key).exclude(pk=self.pk).exists():
@@ -93,8 +113,19 @@ class Item(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         if kwargs.get("update_fields") and "name" in kwargs["update_fields"]:
-            kwargs["update_fields"] = set(kwargs["update_fields"]) | {"name_key"}
+            kwargs["update_fields"] = set(kwargs["update_fields"]) | {
+                "name_key",
+                "name_reading",
+            }
         super().save(*args, **kwargs)
+
+    @property
+    def sort_key(self):
+        return (
+            reading_sort_key(self.name_reading or reading_for_name(self.name))
+            + "\0"
+            + normalize_reading(self.name)
+        )
 
     def __str__(self):
         return self.name

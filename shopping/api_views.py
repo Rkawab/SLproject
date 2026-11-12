@@ -61,6 +61,8 @@ def item_data(item):
     return {
         "id": item.pk,
         "name": item.name,
+        "name_reading": item.name_reading,
+        "sort_key": item.sort_key,
         "section_id": item.section_id,
         "section": item.section.name,
         "tap_quantity": item.tap_quantity,
@@ -78,6 +80,8 @@ def entry_data(entry):
         "item_id": entry.item_id,
         "tap_quantity": entry.item.tap_quantity,
         "name": entry.item.name,
+        "name_reading": entry.item.name_reading,
+        "sort_key": entry.item.sort_key,
         "quantity": entry.quantity,
         "note": entry.note,
         "store_id": entry.store_id,
