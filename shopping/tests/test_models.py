@@ -23,6 +23,7 @@ class SeededTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         call_command("load_seed", stdout=StringIO())
+        cls.seed_item_count = Item.objects.count()
 
     def item(self, name):
         return Item.objects.get(name=name)
@@ -36,7 +37,7 @@ class ModelTests(SeededTestCase):
         call_command("load_seed", stdout=StringIO())
         self.assertEqual(
             (Store.objects.count(), Section.objects.count(), Item.objects.count()),
-            (2, 10, 74),
+            (4, 10, 87),
         )
         banana.refresh_from_db()
         self.assertEqual(banana.default_note, "好みの熟し具合")

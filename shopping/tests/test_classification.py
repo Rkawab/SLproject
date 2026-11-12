@@ -109,7 +109,7 @@ class ClassificationTests(SeededTestCase):
                 content_type="application/json",
             )
             api.assert_called_once()
-        self.assertEqual(Item.objects.count(), 75)
+        self.assertEqual(Item.objects.count(), self.seed_item_count + 1)
 
     def test_line_new_item_only_suggests_category_before_confirmation(self):
         self.client.force_login(User.objects.create_user("paste-ai"))
@@ -123,4 +123,4 @@ class ClassificationTests(SeededTestCase):
         self.assertEqual(response.status_code, 200)
         row = response.context["rows"][0]
         self.assertEqual(row["form"].initial["section"].pk, section.pk)
-        self.assertEqual(Item.objects.count(), 74)
+        self.assertEqual(Item.objects.count(), self.seed_item_count)

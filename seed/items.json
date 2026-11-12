@@ -2,7 +2,9 @@
   "_comment": "初期品目データ（正本）。Codex は SLproject/seed/items.json にコピーし、manage.py load_seed で投入する。store は stores[].name、section は sections[].name を参照。store=null は店未指定（どの店タブにも出る）。既定の店は妻のLINE実例で店見出しの下に出てきた店を採用し、出てこなかった肉・魚はイトーヨーカドー、その他は null。",
   "stores": [
     {"name": "業務スーパー", "aliases": ["業スー", "業務"], "order": 1},
-    {"name": "イトーヨーカドー", "aliases": ["ヨーカドー", "ヨーカ堂", "イトーヨーカ堂"], "order": 2}
+    {"name": "イトーヨーカドー", "aliases": ["ヨーカドー", "ヨーカ堂", "イトーヨーカ堂"], "order": 2},
+    {"name": "ドラッグストア", "aliases": ["薬局", "ドラッグ"], "order": 3},
+    {"name": "その他", "aliases": [], "order": 4}
   ],
   "sections": [
     {"name": "野菜・果物", "order": 1, "description": "青果売り場の物すべて。きのこ・カット野菜・サラダ・薬味", "is_fallback": false},
@@ -90,6 +92,19 @@
     {"name": "チャイルドシート", "section": "ベビー・ママ用品", "store": null, "tap_quantity": "1個"},
     {"name": "産後ブラ長袖", "section": "ベビー・ママ用品", "store": null, "tap_quantity": "1枚"},
     {"name": "マタニティ腹巻きパンツ", "section": "ベビー・ママ用品", "store": null, "tap_quantity": "1枚"},
-    {"name": "乳頭ケアクリーム（ピュアレーン）", "section": "ベビー・ママ用品", "store": null, "aliases": ["乳頭ケアクリーム", "ピュアレーン"], "tap_quantity": "1個"}
+    {"name": "乳頭ケアクリーム（ピュアレーン）", "section": "ベビー・ママ用品", "store": null, "aliases": ["乳頭ケアクリーム", "ピュアレーン"], "tap_quantity": "1個"},
+    {"name": "トイレットペーパー", "name_reading": "といれっとぺーぱー", "tap_quantity": "1パック", "aliases": ["トイレペーパー"], "section": "日用品", "store": "ドラッグストア"},
+    {"name": "ウェットティッシュ", "name_reading": "うぇっとてぃっしゅ", "tap_quantity": "1パック", "aliases": ["ウエットティッシュ", "ウェットティシュ"], "section": "日用品", "store": "ドラッグストア"},
+    {"name": "ティッシュペーパー", "name_reading": "てぃっしゅぺーぱー", "tap_quantity": "1パック", "aliases": ["ティッシュ", "箱ティッシュ"], "section": "日用品", "store": "ドラッグストア"},
+    {"name": "キッチンペーパー", "name_reading": "きっちんぺーぱー", "tap_quantity": "1パック", "section": "日用品", "store": "ドラッグストア"},
+    {"name": "洗濯洗剤", "name_reading": "せんたくせんざい", "tap_quantity": "1個", "aliases": ["洗濯用洗剤"], "section": "日用品", "store": "ドラッグストア"},
+    {"name": "柔軟剤", "name_reading": "じゅうなんざい", "tap_quantity": "1個", "section": "日用品", "store": "ドラッグストア"},
+    {"name": "食器用洗剤", "name_reading": "しょっきようせんざい", "tap_quantity": "1本", "aliases": ["台所用洗剤", "食器洗剤"], "section": "日用品", "store": "ドラッグストア"},
+    {"name": "ハンドソープ", "name_reading": "はんどそーぷ", "tap_quantity": "1本", "section": "日用品", "store": "ドラッグストア"},
+    {"name": "シャンプー", "name_reading": "しゃんぷー", "tap_quantity": "1本", "section": "日用品", "store": "ドラッグストア"},
+    {"name": "ボディソープ", "name_reading": "ぼでぃそーぷ", "tap_quantity": "1本", "aliases": ["ボディーソープ"], "section": "日用品", "store": "ドラッグストア"},
+    {"name": "歯磨き粉", "name_reading": "はみがきこ", "tap_quantity": "1本", "aliases": ["歯みがき粉", "ハミガキ粉"], "section": "日用品", "store": "ドラッグストア"},
+    {"name": "歯ブラシ", "name_reading": "はぶらし", "tap_quantity": "1本", "aliases": ["ハブラシ"], "section": "日用品", "store": "ドラッグストア"},
+    {"name": "ゴミ袋", "name_reading": "ごみぶくろ", "tap_quantity": "1袋", "section": "日用品", "store": "ドラッグストア"}
   ]
 }

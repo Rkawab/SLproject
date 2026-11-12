@@ -45,7 +45,7 @@ class LineParserTests(SeededTestCase):
             [r.kind for r in rows], ["item", "excluded", "excluded", "item"]
         )
         self.assertEqual(rows[-1].match.kind, "new")
-        self.assertEqual(Item.objects.count(), 74)
+        self.assertEqual(Item.objects.count(), self.seed_item_count)
         Entry.objects.create(item=self.item("納豆"))
         duplicate = parse_lines("納豆")[0]
         self.assertTrue(duplicate.duplicate)
@@ -62,7 +62,7 @@ class LineParserTests(SeededTestCase):
             reverse("shopping:paste-preview"), {"text": SAMPLES[0]["text"]}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(Item.objects.count(), 74)
+        self.assertEqual(Item.objects.count(), self.seed_item_count)
         self.assertEqual(Entry.objects.count(), 0)
         data = {"action": "confirm", "token": self.client.session["paste_token"]}
         for index, row in enumerate(parse_lines(SAMPLES[0]["text"])):
@@ -82,7 +82,7 @@ class LineParserTests(SeededTestCase):
             self.client.post(reverse("shopping:paste-preview"), data).status_code, 302
         )
         self.assertEqual(Entry.objects.count(), 18)
-        self.assertEqual(Item.objects.count(), 74)
+        self.assertEqual(Item.objects.count(), self.seed_item_count)
         self.assertEqual(
             self.client.post(reverse("shopping:paste-preview"), data).status_code, 302
         )

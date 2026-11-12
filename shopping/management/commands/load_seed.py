@@ -29,10 +29,15 @@ class Command(BaseCommand):
                 name=name, defaults=values
             )
         for row in data["items"]:
-            if Item.objects.filter(name_key=make_key(row["name"])).exists():
+            keys = [make_key(name) for name in [row["name"], *row.get("aliases", [])]]
+            if (
+                Item.objects.filter(name_key__in=keys).exists()
+                or ItemAlias.objects.filter(alias_key__in=keys).exists()
+            ):
                 continue
             item = Item.objects.create(
                 name=row["name"],
+                name_reading=row.get("name_reading", ""),
                 section=sections[row["section"]],
                 default_store=stores.get(row.get("store")),
                 default_note=row.get("note", ""),
