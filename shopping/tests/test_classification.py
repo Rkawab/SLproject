@@ -78,6 +78,88 @@ class ClassificationTests(SeededTestCase):
             with patch("shopping.classification.urlopen", return_value=response):
                 self.assertTrue(classify_section("お米").is_fallback)
 
+    @override_settings(OPENAI_MODEL="gpt-6-luna", OPENAI_REASONING_EFFORT="none")
+    def test_note_and_reasoning_effort_are_sent(self):
+        section = Section.objects.get(name="冷凍食品")
+        with patch(
+            "shopping.classification.urlopen", return_value=response_for(section.pk)
+        ) as api:
+            self.assertEqual(
+                classify_section("むねから", "冷凍鶏むね唐揚げ").pk, section.pk
+            )
+            payload = json.loads(api.call_args.args[0].data)
+        self.assertEqual(payload["model"], "gpt-6-luna")
+        self.assertEqual(payload["reasoning"], {"effort": "none"})
+        content = json.loads(payload["input"][1]["content"])
+        self.assertEqual(
+            content["item"], {"name": "むねから", "note": "冷凍鶏むね唐揚げ"}
+        )
+        # メモが違えば別判定としてキャッシュを分ける。
+        with patch(
+            "shopping.classification.urlopen", return_value=response_for(section.pk)
+        ) as api:
+            classify_section("むねから")
+            api.assert_called_once()
+            content = json.loads(
+                json.loads(api.call_args.args[0].data)["input"][1]["content"]
+            )
+            self.assertEqual(content["item"], {"name": "むねから"})
+
+    @override_settings(OPENAI_REASONING_EFFORT="")
+    def test_empty_reasoning_effort_is_not_sent(self):
+        section = Section.objects.get(name="パン・麺・米")
+        with patch(
+            "shopping.classification.urlopen", return_value=response_for(section.pk)
+        ) as api:
+            classify_section("お米")
+            self.assertNotIn("reasoning", json.loads(api.call_args.args[0].data))
+
+    def test_extra_output_text_does_not_break_parsing(self):
+        section = Section.objects.get(name="パン・麺・米")
+        payload = {
+            "status": "completed",
+            "output": [
+                {"type": "reasoning", "summary": []},
+                {
+                    "type": "message",
+                    "content": [
+                        {
+                            "type": "output_text",
+                            "text": json.dumps({"section_id": section.pk}),
+                        }
+                    ],
+                },
+                {
+                    "type": "message",
+                    "content": [{"type": "output_text", "text": "補足"}],
+                },
+            ],
+        }
+        response = io.BytesIO(json.dumps(payload).encode("utf-8"))
+        with patch("shopping.classification.urlopen", return_value=response):
+            self.assertEqual(classify_section("肉まん").pk, section.pk)
+
+    def test_manual_input_note_is_used_for_classification(self):
+        self.client.force_login(User.objects.create_user("note-user"))
+        section = Section.objects.get(name="冷凍食品")
+        with patch(
+            "shopping.classification.urlopen", return_value=response_for(section.pk)
+        ) as api:
+            response = self.client.post(
+                reverse("shopping:api-add"),
+                json.dumps(
+                    {"raw": "むねから（冷凍鶏むね唐揚げ）", "auto_register": True}
+                ),
+                content_type="application/json",
+            )
+            content = json.loads(
+                json.loads(api.call_args.args[0].data)["input"][1]["content"]
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content["item"]["note"], "冷凍鶏むね唐揚げ")
+        item = Item.objects.get(pk=response.json()["item"]["id"])
+        self.assertEqual((item.name, item.section_id), ("むねから", section.pk))
+
     def test_manual_section_overrides_ai(self):
         section = Section.objects.get(name="パン・麺・米")
         with patch("shopping.classification.urlopen") as api:

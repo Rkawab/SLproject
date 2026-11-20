@@ -130,7 +130,7 @@ def paste_preview(request):
                 "quantity": match.quantity,
                 "note": match.note,
                 "store": row.store,
-                "section": classify_section(match.name)
+                "section": classify_section(match.name, match.note)
                 if not confirming and match.kind == "new"
                 else None,
             },

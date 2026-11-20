@@ -198,6 +198,7 @@ def add(request):
             store=optional_object(Store, data.get("store_id")),
             user=request.user,
             quantity=result.quantity,
+            note=result.note,
         )
         response = added_response(
             item, request, data, result.quantity or item.tap_quantity, result.note
@@ -245,7 +246,7 @@ def create_item(request):
     data = request.payload
     name = text_field(data, "name", 200)
     quantity = text_field(data, "quantity", 100)
-    text_field(data, "note", 500)
+    note = text_field(data, "note", 500)
     if data.get("alias_item_id"):
         item = Item.objects.get(pk=int(data["alias_item_id"]))
         add_alias(item, name)
@@ -256,6 +257,7 @@ def create_item(request):
             optional_object(Store, data.get("store_id")),
             request.user,
             quantity=quantity,
+            note=note,
         )
     return added_response(item, request, data, quantity or item.tap_quantity)
 

@@ -23,7 +23,7 @@ def fallback_section():
     return Section.objects.get(is_fallback=True)
 
 
-def register_item(name, section=None, store=None, user=None, quantity=""):
+def register_item(name, section=None, store=None, user=None, quantity="", note=""):
     from .classification import classify_section
 
     if not make_key(name) or len(name.strip()) > 200:
@@ -31,7 +31,8 @@ def register_item(name, section=None, store=None, user=None, quantity=""):
     existing = exact_item(make_key(name))
     if existing:
         return existing
-    section = section or classify_section(name)
+    # メモ（「冷凍」等）は分類の手がかりにだけ使い、品目には保存しない。
+    section = section or classify_section(name, note)
     return _register_item(name, section, store, user, quantity)
 
 
